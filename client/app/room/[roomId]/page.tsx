@@ -1,7 +1,6 @@
 "use client";
-
-import UserFeedPlayer from "@/app/components/UserFeedPlayer";
-import { SocketContext } from "@/app/context/socketContext";
+import UserFeedPlayer from "@/components/UserFeedPlayer";
+import { SocketContext } from "@/contexts/socketContext";
 import { use, useContext, useEffect } from "react";
 
 export default function Room({
@@ -12,16 +11,30 @@ export default function Room({
   const { roomId } = use(params);
   const socketContext = useContext(SocketContext);
   if (!socketContext) return <>Socket Not Initialized</>;
-  const { socket, user, stream } = socketContext;
+  const { socket, user, stream, peers } = socketContext;
   useEffect(() => {
-    if (user) socket.emit("join-room", { roomId, peerId: user.id });
+    if (user) socket.emit("joined-room", { roomId, peerId: user.id });
   }, [roomId, user]);
   return (
     <div>
-      {roomId} Joined!
+      {user?.id} Joined!
       <div>
         User Feed:
         <UserFeedPlayer stream={stream} />
+      </div>
+      <div>
+        Other User Feeds:
+        <div>
+          {Object.keys(peers).map((peerId: string) => (
+            <div key={`peer_div_${peerId}`}>
+              <UserFeedPlayer
+                stream={peers[peerId].stream}
+                key={`peer_${peerId}`}
+              />
+              <p>{peerId}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

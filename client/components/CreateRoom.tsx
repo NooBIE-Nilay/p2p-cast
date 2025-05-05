@@ -1,6 +1,6 @@
 "use client";
 import { useContext } from "react";
-import { SocketContext } from "../context/socketContext";
+import { SocketContext } from "@/contexts/socketContext";
 
 export const CreateRoom: React.FC = () => {
   const socketContext = useContext(SocketContext);

@@ -3,6 +3,7 @@ import { v4 as UUIdv4 } from "uuid";
 import IRoomParams from "../interfaces/IRoomParams";
 
 const rooms: Record<string, string[]> = {};
+
 export const roomHandler = (socket: Socket) => {
   const createRoom = () => {
     const roomId = UUIdv4();
@@ -10,13 +11,17 @@ export const roomHandler = (socket: Socket) => {
     socket.emit("room-created", { roomId });
   };
 
-  const joinRoom = ({ roomId, peerId }: IRoomParams) => {
+  const joinedRoom = ({ roomId, peerId }: IRoomParams) => {
     if (rooms[roomId]) {
+      console.log("New User Joined Room", roomId, "With PeerId:", peerId);
       rooms[roomId].push(peerId);
       socket.join(roomId);
-      console.log(rooms);
+      socket.on("ready", () => {
+        socket.to(roomId).emit("user-joined", { peerId });
+      });
     }
   };
+
   socket.on("create-room", createRoom);
-  socket.on("join-room", joinRoom);
+  socket.on("joined-room", joinedRoom);
 };
