@@ -38,10 +38,12 @@ export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const userId = UUIdv4();
-    const newPeer = new Peer(userId);
+    const newPeer = new Peer(userId, {
+      host: "localhost",
+      port: 9000,
+    });
 
     setUser(newPeer);
-
     fetchUserFeed();
 
     const enterRoom = ({ roomId }: { roomId: string }) => {
