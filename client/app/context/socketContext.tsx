@@ -1,12 +1,16 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { createContext, useEffect } from "react";
+import Peer from "peerjs";
+import React, { createContext, useEffect, useState } from "react";
 import SocketIoClient, { Socket } from "socket.io-client";
+import { v4 as UUIdv4 } from "uuid";
 
 const WSServerUrl = "http://localhost:8080";
 
 interface contextType {
   socket: Socket;
+  user: Peer | undefined;
+  stream: MediaStream | undefined;
 }
 export const SocketContext = createContext<contextType | null>(null);
 const socket = SocketIoClient(WSServerUrl, {
@@ -14,23 +18,45 @@ const socket = SocketIoClient(WSServerUrl, {
   transports: ["polling", "websocket"],
 });
 
-interface Props {
+interface ProviderProps {
   children: React.ReactNode;
 }
 
-export const SocketProvider: React.FC<Props> = ({ children }) => {
+export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
   const router = useRouter();
+
+  const [user, setUser] = useState<Peer>();
+  const [stream, setStream] = useState<MediaStream>();
+
+  const fetchUserFeed = async () => {
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+    setStream(mediaStream);
+  };
+
   useEffect(() => {
+    const userId = UUIdv4();
+    const newPeer = new Peer(userId);
+
+    setUser(newPeer);
+
+    fetchUserFeed();
+
     const enterRoom = ({ roomId }: { roomId: string }) => {
       router.push(`/room/${roomId}`);
     };
+
     socket.on("room-created", enterRoom);
+
     return () => {
       socket.off("room-created", enterRoom);
     };
   }, [socket]);
+
   return (
-    <SocketContext.Provider value={{ socket }}>
+    <SocketContext.Provider value={{ socket, user, stream }}>
       {children}
     </SocketContext.Provider>
   );
