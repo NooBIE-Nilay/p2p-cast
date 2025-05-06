@@ -5,10 +5,15 @@ import React, { createContext, useEffect, useReducer, useState } from "react";
 import SocketIoClient, { Socket } from "socket.io-client";
 import { v4 as UUIdv4 } from "uuid";
 import { peerReducer, PeerState } from "./reducers/peerReducer";
-import { addPeerAction } from "./actions/peerAction";
+import { addPeerAction, removePeerAction } from "./actions/peerAction";
+import {
+  PeerJsPort,
+  PeerJsUrl,
+  SocketIOPort,
+  SocketIOUrl,
+} from "@/configs/clientConfig";
 
-const WSServerUrl = "http://localhost:8080";
-
+const WSServerUrl = `http://${SocketIOUrl}:${SocketIOPort}`;
 interface contextType {
   socket: Socket;
   user: Peer | undefined;
@@ -39,13 +44,20 @@ export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
       audio: true,
     });
     setStream(mediaStream);
+    async function getConnectedDevices(type: string) {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices.filter((device) => device.kind === type);
+    }
+
+    const videoCameras = await getConnectedDevices("videoinput");
+    console.log("Cameras found:", videoCameras);
   };
 
   useEffect(() => {
     const userId = UUIdv4();
     const newPeer = new Peer(userId, {
-      host: "localhost",
-      port: 9000,
+      host: PeerJsUrl,
+      port: Number(PeerJsPort),
     });
 
     setUser(newPeer);
@@ -69,14 +81,17 @@ export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
       const call = user.call(peerId, stream);
       console.log("Calling Peer: ", peerId);
       call.on("stream", () => {
-        dispatch(addPeerAction(peerId, stream));
+        dispatch(addPeerAction(peerId, call.remoteStream));
       });
+    });
+    socket.on("user-left", ({ peerId }: { peerId: string }) => {
+      dispatch(removePeerAction(peerId));
     });
     user.on("call", (call) => {
       console.log("Receiving a call from", call);
       call.answer(stream);
       call.on("stream", () => {
-        dispatch(addPeerAction(call.peer, stream));
+        dispatch(addPeerAction(call.peer, call.remoteStream));
       });
     });
     socket.emit("ready");

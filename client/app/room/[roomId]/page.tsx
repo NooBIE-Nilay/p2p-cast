@@ -14,24 +14,25 @@ export default function Room({
   const { socket, user, stream, peers } = socketContext;
   useEffect(() => {
     if (user) socket.emit("joined-room", { roomId, peerId: user.id });
+    console.log("Peers:", peers);
   }, [roomId, user]);
   return (
     <div>
       {user?.id} Joined!
       <div>
         User Feed:
-        <UserFeedPlayer stream={stream} />
+        <UserFeedPlayer stream={stream} owner={true} />
+        <p>Peer: {user?.id}</p>
+        <p>Stream: {stream?.id}</p>
       </div>
       <div>
         Other User Feeds:
         <div>
           {Object.keys(peers).map((peerId: string) => (
             <div key={`peer_div_${peerId}`}>
-              <UserFeedPlayer
-                stream={peers[peerId].stream}
-                key={`peer_${peerId}`}
-              />
-              <p>{peerId}</p>
+              <UserFeedPlayer stream={peers[peerId].stream} />
+              <p>Peer: {peerId}</p>
+              <p>Stream: {peers[peerId].stream.id}</p>
             </div>
           ))}
         </div>

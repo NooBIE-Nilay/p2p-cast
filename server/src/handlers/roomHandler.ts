@@ -2,7 +2,13 @@ import { Socket } from "socket.io";
 import { v4 as UUIdv4 } from "uuid";
 import IRoomParams from "../interfaces/IRoomParams";
 
-const rooms: Record<string, string[]> = {};
+// Rooms ->   Connected SocketIds & PeersIds
+
+interface IRecordValue {
+  peerId: string;
+  socketId: string;
+}
+const rooms: Record<string, IRecordValue[]> = {};
 
 export const roomHandler = (socket: Socket) => {
   const createRoom = () => {
@@ -13,11 +19,16 @@ export const roomHandler = (socket: Socket) => {
 
   const joinedRoom = ({ roomId, peerId }: IRoomParams) => {
     if (rooms[roomId]) {
-      console.log("New User Joined Room", roomId, "With PeerId:", peerId);
-      rooms[roomId].push(peerId);
       socket.join(roomId);
+      rooms[roomId].push({ peerId, socketId: socket.id });
       socket.on("ready", () => {
         socket.to(roomId).emit("user-joined", { peerId });
+      });
+      socket.on("disconnecting", () => {
+        socket.to(roomId).emit("user-left", { peerId });
+        rooms[roomId] = rooms[roomId].filter(
+          (recordObj) => recordObj.socketId !== socket.id,
+        );
       });
     }
   };
