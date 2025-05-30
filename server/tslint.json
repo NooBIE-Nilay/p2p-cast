@@ -2,6 +2,7 @@
   "extends": "tslint:recommended",
   "defaultSeverity": "error",
   "rules": {
+    "object-literal-sort-keys": false,
     "no-console": {
       "severity": "warning",
       "options": ["debug", "info", "log", "trace"]

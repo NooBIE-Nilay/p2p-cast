@@ -12,6 +12,7 @@ import {
   SocketIOPort,
   SocketIOUrl,
 } from "@/configs/clientConfig";
+import { useAuth } from "@clerk/nextjs";
 
 const WSServerUrl = `http://${SocketIOUrl}:${SocketIOPort}`;
 interface contextType {
@@ -19,6 +20,7 @@ interface contextType {
   user: Peer | undefined;
   stream: MediaStream | undefined;
   peers: PeerState;
+  token: string;
 }
 export const SocketContext = createContext<contextType | null>(null);
 const socket = SocketIoClient(WSServerUrl, {
@@ -32,12 +34,18 @@ interface ProviderProps {
 
 export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
   const router = useRouter();
-
+  const authObj = useAuth();
+  const [token, setToken] = useState("");
   const [user, setUser] = useState<Peer>();
+
   const [stream, setStream] = useState<MediaStream>();
 
   const [peers, dispatch] = useReducer(peerReducer, {});
-
+  const fetchAuthToken = async () => {
+    if (authObj.isLoaded) {
+      authObj.getToken().then((value) => setToken(value || ""));
+    }
+  };
   const fetchUserFeed = async () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: true,
@@ -76,6 +84,9 @@ export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
     };
   }, [socket]);
   useEffect(() => {
+    fetchAuthToken();
+  }, [authObj]);
+  useEffect(() => {
     if (!user || !stream) return;
     socket.on("user-joined", ({ peerId }: { peerId: string }) => {
       const call = user.call(peerId, stream);
@@ -98,7 +109,7 @@ export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
   }, [user, stream]);
 
   return (
-    <SocketContext.Provider value={{ socket, user, stream, peers }}>
+    <SocketContext.Provider value={{ socket, user, stream, peers, token }}>
       {children}
     </SocketContext.Provider>
   );

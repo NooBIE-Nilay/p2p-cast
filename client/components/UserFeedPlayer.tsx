@@ -23,7 +23,6 @@ const UserFeedPlayer: React.FC<{
     if (screenVideoRef.current && stream && stream.getVideoTracks()[1]) {
       const screenStream = new MediaStream();
       screenStream.addTrack(stream.getVideoTracks()[1]);
-      console.log(screenStream);
       screenVideoRef.current.srcObject = screenStream;
     }
   }, [stream, screenTrack]);

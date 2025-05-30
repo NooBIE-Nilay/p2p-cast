@@ -1,0 +1,17 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: n00bie
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: p2p-cast
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: serverless-singedURL
+
+provider:
+  name: aws
+  region: ap-south-1
+  runtime: nodejs20.x
+
+functions:
+  api:
+    handler: handler.handler
+    events:
+      - httpApi: "*"

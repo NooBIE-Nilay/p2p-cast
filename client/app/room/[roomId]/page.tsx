@@ -1,7 +1,9 @@
 "use client";
+
 import UserFeedPlayer from "@/components/UserFeedPlayer";
 import { SocketContext } from "@/contexts/socketContext";
 import { use, useContext, useEffect } from "react";
+import { useMediaRecorder } from "@/app/hooks/useMediaRecorder";
 
 export default function Room({
   params,
@@ -11,19 +13,22 @@ export default function Room({
   const { roomId } = use(params);
   const socketContext = useContext(SocketContext);
   if (!socketContext) return <>Socket Not Initialized</>;
-  const { socket, user, stream, peers } = socketContext;
+  const { socket, user, stream, peers, token } = socketContext;
+  const [isRecording, setIsRecording] = useMediaRecorder(stream, roomId, token);
   useEffect(() => {
     if (user) socket.emit("joined-room", { roomId, peerId: user.id });
-    console.log("Peers:", peers);
   }, [roomId, user]);
   return (
     <div>
-      {user?.id} Joined!
       <div>
         User Feed:
         <UserFeedPlayer stream={stream} owner={true} />
-        <p>Peer: {user?.id}</p>
-        <p>Stream: {stream?.id}</p>
+        <button
+          className="bg-slate-700 p-2 m-2 hover:bg-slate-700/80"
+          onClick={() => setIsRecording((prev: boolean) => !prev)}
+        >
+          {isRecording ? "Recording..." : "Not Recording"}
+        </button>
       </div>
       <div>
         Other User Feeds:
@@ -31,8 +36,6 @@ export default function Room({
           {Object.keys(peers).map((peerId: string) => (
             <div key={`peer_div_${peerId}`}>
               <UserFeedPlayer stream={peers[peerId].stream} />
-              <p>Peer: {peerId}</p>
-              <p>Stream: {peers[peerId].stream.id}</p>
             </div>
           ))}
         </div>

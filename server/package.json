@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
-    "build": "tsc",
+    "build": "npx tsc",
     "predev": "npm run build",
     "dev": "nodemon --watch src --ext ts,tsx --exec \"npm run build && node dist/index.js\""
   },
@@ -21,11 +21,18 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.812.0",
+    "@aws-sdk/s3-request-presigner": "^3.812.0",
+    "@clerk/express": "^1.4.19",
+    "@prisma/client": "^6.8.2",
+    "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "expres": "^0.0.5",
     "express": "^5.1.0",
+    "prisma": "^6.8.2",
     "socket.io": "^4.8.1",
+    "svix": "^1.65.0",
     "uuid": "^11.1.0"
   }
 }
