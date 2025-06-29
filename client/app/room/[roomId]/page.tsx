@@ -2,9 +2,10 @@
 
 import UserFeedPlayer from "@/components/UserFeedPlayer";
 import { SocketContext } from "@/contexts/socketContext";
-import { use, useContext, useEffect } from "react";
+import { use, useContext, useEffect, useState } from "react";
 import { useMediaRecorder } from "@/app/hooks/useMediaRecorder";
-
+import axios from "axios";
+import { useAuth } from "@clerk/nextjs";
 export default function Room({
   params,
 }: {
@@ -13,11 +14,14 @@ export default function Room({
   const { roomId } = use(params);
   const socketContext = useContext(SocketContext);
   if (!socketContext) return <>Socket Not Initialized</>;
-  const { socket, user, stream, peers, token } = socketContext;
-  const [isRecording, setIsRecording] = useMediaRecorder(stream, roomId, token);
+  const { socket, user, stream, peers } = socketContext;
+  const [isRecording, setIsRecording] = useMediaRecorder(stream, roomId);
+
   useEffect(() => {
     if (user) socket.emit("joined-room", { roomId, peerId: user.id });
   }, [roomId, user]);
+
+  if (!stream) return <>Stream Not Initialized</>;
   return (
     <div>
       <div>

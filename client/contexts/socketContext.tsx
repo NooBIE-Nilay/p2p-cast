@@ -12,7 +12,6 @@ import {
   SocketIOPort,
   SocketIOUrl,
 } from "@/configs/clientConfig";
-import { useAuth } from "@clerk/nextjs";
 
 const WSServerUrl = `http://${SocketIOUrl}:${SocketIOPort}`;
 interface contextType {
@@ -20,7 +19,10 @@ interface contextType {
   user: Peer | undefined;
   stream: MediaStream | undefined;
   peers: PeerState;
-  token: string;
+  switchStream: (
+    deviceId: string,
+    kind: "videoinput" | "audioinput"
+  ) => Promise<void>;
 }
 export const SocketContext = createContext<contextType | null>(null);
 const socket = SocketIoClient(WSServerUrl, {
@@ -34,31 +36,41 @@ interface ProviderProps {
 
 export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
   const router = useRouter();
-  const authObj = useAuth();
-  const [token, setToken] = useState("");
   const [user, setUser] = useState<Peer>();
 
   const [stream, setStream] = useState<MediaStream>();
 
   const [peers, dispatch] = useReducer(peerReducer, {});
-  const fetchAuthToken = async () => {
-    if (authObj.isLoaded) {
-      authObj.getToken().then((value) => setToken(value || ""));
+
+  async function switchStream(
+    deviceId: string,
+    kind: "videoinput" | "audioinput"
+  ) {
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: kind === "videoinput" ? { deviceId } : false,
+        audio: kind === "audioinput" ? { deviceId } : false,
+      });
+      //TODO: This Somewhat Works, But Needs To Get Better
+      if (stream && newStream) {
+        stream.removeTrack(stream.getVideoTracks()[0]);
+        stream.getAudioTracks()[0].stop();
+        stream.addTrack(newStream.getVideoTracks()[0]);
+      }
+      localStorage.setItem("videoId", deviceId);
+      // setStream(newStream);
+    } catch (e) {
+      console.error("Error Switching Stream");
+      return;
     }
-  };
+  }
   const fetchUserFeed = async () => {
+    const videoId = localStorage.getItem("videoId");
     const mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: videoId ? { deviceId: videoId } : true,
       audio: true,
     });
     setStream(mediaStream);
-    async function getConnectedDevices(type: string) {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      return devices.filter((device) => device.kind === type);
-    }
-
-    const videoCameras = await getConnectedDevices("videoinput");
-    console.log("Cameras found:", videoCameras);
   };
 
   useEffect(() => {
@@ -84,9 +96,6 @@ export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
     };
   }, [socket]);
   useEffect(() => {
-    fetchAuthToken();
-  }, [authObj]);
-  useEffect(() => {
     if (!user || !stream) return;
     socket.on("user-joined", ({ peerId }: { peerId: string }) => {
       const call = user.call(peerId, stream);
@@ -109,7 +118,9 @@ export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
   }, [user, stream]);
 
   return (
-    <SocketContext.Provider value={{ socket, user, stream, peers, token }}>
+    <SocketContext.Provider
+      value={{ socket, user, stream, peers, switchStream }}
+    >
       {children}
     </SocketContext.Provider>
   );

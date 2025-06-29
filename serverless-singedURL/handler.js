@@ -40,7 +40,7 @@ app.get("/api/getSignedUrl", requireAuth(), async (req, res) => {
   try {
     const preSignedPutUrl = await getPresignedPutUrl(
       `rooms/${room_id}/participants/${user.userId}/raw/${source}/video-${index}.webm`,
-      "video/webm"
+      "video/webm;codecs=vp8,opus"
     );
     return res.json({ status: "Success", url: preSignedPutUrl });
   } catch (err) {

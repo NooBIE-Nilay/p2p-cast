@@ -1,37 +1,79 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { clerkMiddleware, getAuth, requireAuth } from "@clerk/express";
 import { verifyWebhook } from "@clerk/express/webhooks";
 import cors from "cors";
 import express from "express";
+import fs from "fs";
 import http from "http";
+import path from "path";
 import { Server } from "socket.io";
 import { PORT } from "./config/serverConfig";
 import { prisma } from "./db";
 import { roomHandler } from "./handlers/roomHandler";
 import s3Client from "./s3";
+
 const app = express();
 app.use(cors());
 app.use(clerkMiddleware());
 
 const server = http.createServer(app);
 
-const getPresignedPutUrl = async (fileName: string, contentType: string) => {
-  const command = new PutObjectCommand({
-    Bucket: process.env.AWS_BUCKET || "",
-    Key: fileName,
-    ContentType: contentType,
-  });
-  const url = await getSignedUrl(s3Client, command, { expiresIn: 120 });
-  return url;
-};
 app.get("/health", (_, res) => {
+  res.json({ message: "Server Running Successfully", status: "200" });
+});
+app.get("/api/auth_health", requireAuth(), (_, res) => {
   res.json({ message: "Server Running Successfully", status: "200" });
 });
 app.get("/", (_, res) => {
   res.json({ message: "Server Running Successfully", status: "200" });
 });
-
+app.post(
+  "/api/merge-blobs",
+  requireAuth(),
+  express.json(),
+  async (req, res) => {
+    const { room_id, blobsLength, source } = req.body;
+    const bucket = process.env.AWS_BUCKET;
+    const { userId } = getAuth(req);
+    if (!room_id || !blobsLength || !source || !userId) {
+      res.status(400).json({ error: "Missing Params" });
+      return;
+    }
+    const downloadDir = `/tmp/room/${room_id}`;
+    const mergedKey = path.join(downloadDir, `${userId}.mp4`);
+    try {
+      fs.mkdirSync(downloadDir, { recursive: true });
+      const inputListPath = path.join(downloadDir, "inputs.txt");
+      const inputList = [];
+      for (let index = 0; index < blobsLength; index++) {
+        const key = `rooms/${room_id}/participants/${userId}/raw/${source}/video-${index}.webm`;
+        const localPath = path.join(downloadDir, `video_${index}.webm`);
+        try {
+          const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+          const { Body } = await s3Client.send(command);
+          if (!Body) {
+            return;
+          }
+          const blob = new Blob([await Body.transformToByteArray()], {
+            type: "video/webm",
+          });
+          const buffer = Buffer.from(await blob.arrayBuffer());
+          fs.writeFileSync(localPath, buffer);
+          console.log(`${localPath} Saved`);
+        } catch (e) {
+          console.log(e);
+        }
+        inputList.push(`file '${localPath}'`);
+        console.log(inputList);
+      }
+      fs.writeFileSync(inputListPath, inputList.join("\n"));
+      console.log(`Finished ${inputListPath}`);
+      res.json({ success: true, outputKey: mergedKey });
+    } catch (e) {
+      res.status(500).json({ success: false, error: e });
+    }
+  },
+);
 app.post(
   "/api/webhooks",
   express.raw({ type: "application/json" }),
@@ -98,34 +140,6 @@ app.post(
     }
   },
 );
-
-app.get(
-  "/api/getSignedUrl",
-  express.json(),
-  // requireAuth(),
-  async (req, res) => {
-    const { index, room_id, source } = req.headers;
-    const user = getAuth(req);
-    // Check if details provided in body verify the frontend schema
-    // maybe directly fetch user_id and room_id from clerk Auth Object.
-    try {
-      const preSignedPutUrl = await getPresignedPutUrl(
-        `rooms/${room_id}/participants/${user.userId}/raw/${source}/video-${index}.webm`,
-        "video/webm",
-      );
-      res.json({ status: "Success", url: preSignedPutUrl });
-    } catch (err) {
-      console.error("Error generating signed URL:", err);
-      res.status(500).json({ error: "Failed to generate signed URL" });
-    }
-  },
-);
-
-app.get("/api/testAuth", requireAuth(), (req, res) => {
-  const obj = getAuth(req);
-  console.log(obj);
-  res.json({ obj });
-});
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });

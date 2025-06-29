@@ -7,4 +7,5 @@ const s3Client = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_KEY || "",
   },
 });
+
 export default s3Client;
