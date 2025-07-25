@@ -1,11 +1,8 @@
 "use client";
-
 import UserFeedPlayer from "@/components/UserFeedPlayer";
 import { SocketContext } from "@/contexts/socketContext";
-import { use, useContext, useEffect, useState } from "react";
+import { use, useContext, useEffect } from "react";
 import { useMediaRecorder } from "@/app/hooks/useMediaRecorder";
-import axios from "axios";
-import { useAuth } from "@clerk/nextjs";
 export default function Room({
   params,
 }: {
