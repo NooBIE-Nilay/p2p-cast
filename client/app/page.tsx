@@ -1,5 +1,6 @@
 "use client";
 import { CreateRoom } from "@/components/CreateRoom";
+import Navbar from "@/components/Navbar";
 import {
   SignedIn,
   SignedOut,
@@ -11,20 +12,23 @@ import {
 
 export default function Home() {
   return (
-    <div className="h-[100vh] flex items-center justify-center">
-      <SignedOut>
+    <div>
+      <Navbar />
+      <div className="h-[100vh] flex items-center justify-center">
+        {/* <SignedOut>
         <div className="text-center  bg-slate-700/90 m-2 p-2 rounded">
-          <SignInButton></SignInButton>
+        <SignInButton></SignInButton>
         </div>
         <div className="text-center  bg-slate-700/90 m-2 p-2 rounded">
-          <SignUpButton></SignUpButton>
+        <SignUpButton></SignUpButton>
         </div>
-      </SignedOut>
-      <SignedIn>
+        </SignedOut>
+        <SignedIn>
         <UserButton></UserButton>
         <SignOutButton></SignOutButton>
         <CreateRoom />
-      </SignedIn>
+        </SignedIn> */}
+      </div>
     </div>
   );
 }

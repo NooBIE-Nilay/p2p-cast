@@ -1,6 +1,6 @@
 "use client";
 import UserFeedPlayer from "@/components/UserFeedPlayer";
-import { SocketContext } from "@/contexts/socketContext";
+import { SocketContext, SocketProvider } from "@/contexts/socketContext";
 import { use, useContext, useEffect } from "react";
 import { useMediaRecorder } from "@/app/hooks/useMediaRecorder";
 export default function Room({
