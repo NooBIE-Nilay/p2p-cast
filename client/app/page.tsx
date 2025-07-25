@@ -1,21 +1,12 @@
 "use client";
 import { CreateRoom } from "@/components/CreateRoom";
 import Navbar from "@/components/Navbar";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignOutButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
-
 export default function Home() {
   return (
     <div>
       <Navbar />
-      <div className="h-[100vh] flex items-center justify-center">
-        {/* <SignedOut>
+
+      {/* <SignedOut>
         <div className="text-center  bg-slate-700/90 m-2 p-2 rounded">
         <SignInButton></SignInButton>
         </div>
@@ -28,7 +19,6 @@ export default function Home() {
         <SignOutButton></SignOutButton>
         <CreateRoom />
         </SignedIn> */}
-      </div>
     </div>
   );
 }

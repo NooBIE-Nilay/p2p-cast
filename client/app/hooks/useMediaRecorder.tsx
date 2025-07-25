@@ -3,7 +3,7 @@ import axios from "axios";
 import { AWS_LAMBDA_URL } from "@/configs/clientConfig";
 import { openDB } from "idb";
 import { useAuth } from "@clerk/nextjs";
-
+//TODO: Fix stop screen sharing, it doesn't stop the screen capture.
 const dbPromise = () =>
   openDB("media-blobs", 1, {
     upgrade(db) {

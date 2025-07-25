@@ -11,7 +11,7 @@ export default function Room({
   const { roomId } = use(params);
   const socketContext = useContext(SocketContext);
   if (!socketContext) return <>Socket Not Initialized</>;
-  const { socket, user, stream, peers } = socketContext;
+  const { socket, user, peers, stream } = socketContext;
   const [isRecording, setIsRecording] = useMediaRecorder(stream, roomId);
 
   useEffect(() => {

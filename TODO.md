@@ -1,5 +1,8 @@
 # Project TODOs
 
+- [ ] Separate SocketContext and StreamContext to different Contexts
+- [ ] Fixes the Video Permission Thingy
+
 ## Landing Page
 
 - [ ] Create a new landing page route
