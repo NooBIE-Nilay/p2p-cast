@@ -116,6 +116,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  @keyframes shine {
+    0% {
+      background-position: 200% center;
+    }
+    100% {
+      background-position: -200% center;
+    }
+  }
   body {
     @apply bg-background text-foreground;
   }
