@@ -25,13 +25,21 @@ import { SocketContext } from "@/contexts/socketContext";
 const UserFeedPlayer: React.FC<{
   stream?: MediaStream;
   owner?: boolean;
-}> = ({ stream, owner }) => {
+  variant?: "primary" | "secondary";
+  className?: string;
+}> = ({ stream, owner, variant = "primary", className }) => {
+  const baseStyles = "flex flex-col items-center justify-center";
+  const variantStyles = {
+    primary: "",
+    secondary: "",
+  };
   const [audioTrack, setAudioTrack] = useState(true);
   const [videoTrack, setVideoTrack] = useState(true);
   const [screenTrack, setScreenTrack] = useState(false);
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
-  const [open, setOpen] = useState(false);
+  const [videoPopupOpen, setVideoPopupOpen] = useState(false);
+  const [audioPopupOpen, setAudioPopupOpen] = useState(false);
   const [value, setValue] = useState(localStorage.getItem("videoId") || "");
   const videoRef = useRef<HTMLVideoElement>(null);
   const screenVideoRef = useRef<HTMLVideoElement>(null);
@@ -63,30 +71,35 @@ const UserFeedPlayer: React.FC<{
   useEffect(() => {
     switchStream(value, "videoinput");
   }, [value]);
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
   if (!stream) return <div>Stream Not Initialized</div>;
   if (owner) {
     return (
-      <div className=" flex flex-col items-center justify-center">
-        <div>
-          <div className="flex items-center justify-between gap-10">
+      <div className={cn(baseStyles, variantStyles[variant], className)}>
+        <div className=" rounded-[16px] flex items-center lg:w-[1000px] justify-between ">
+          <video
+            ref={videoRef}
+            className="w-full h-full rounded-sm"
+            muted={true}
+            autoPlay
+          />
+          {screenTrack && stream.getVideoTracks()[1] && (
             <video
-              ref={videoRef}
               className="w[300px] h-[200px]"
               muted={true}
               autoPlay
-            />
-            {screenTrack && stream.getVideoTracks()[1] && (
-              <video
-                className="w[300px] h-[200px]"
-                muted={true}
-                autoPlay
-                ref={screenVideoRef}
-              ></video>
-            )}
-            <div>{value}</div>
-          </div>
-
-          <Popover open={open} onOpenChange={setOpen}>
+              ref={screenVideoRef}
+            ></video>
+          )}
+        </div>
+        <div className="flex justify-center items-center flex-col md:flex-row gap-2  md:gap-18 mt-4   ">
+          <Popover open={videoPopupOpen} onOpenChange={setVideoPopupOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" role="combobox">
                 {videoDevices.find((device) => device.deviceId === value)
@@ -96,9 +109,8 @@ const UserFeedPlayer: React.FC<{
             </PopoverTrigger>
             <PopoverContent>
               <Command>
-                <CommandInput placeholder="Search framework..." />
                 <CommandList>
-                  <CommandEmpty>No framework found.</CommandEmpty>
+                  <CommandEmpty>No Video Sources found.</CommandEmpty>
                   <CommandGroup>
                     {videoDevices.map((device, index) => (
                       <CommandItem
@@ -106,7 +118,45 @@ const UserFeedPlayer: React.FC<{
                         value={device.deviceId}
                         onSelect={(currentValue) => {
                           setValue(currentValue === value ? "" : currentValue);
-                          setOpen(false);
+                          setAudioPopupOpen(false);
+                        }}
+                      >
+                        <CheckIcon
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            value === device.deviceId
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {device.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <Popover open={audioPopupOpen} onOpenChange={setAudioPopupOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" role="combobox">
+                {audioDevices.find((device) => device.deviceId === value)
+                  ?.label || audioDevices[0]?.label}
+                <ChevronsUpDown className="opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <Command>
+                <CommandList>
+                  <CommandEmpty>No Audio Sources found.</CommandEmpty>
+                  <CommandGroup>
+                    {audioDevices.map((device, index) => (
+                      <CommandItem
+                        key={`audioDevices${index}`}
+                        value={device.deviceId}
+                        onSelect={(currentValue) => {
+                          setValue(currentValue === value ? "" : currentValue);
+                          setAudioPopupOpen(false);
                         }}
                       >
                         <CheckIcon

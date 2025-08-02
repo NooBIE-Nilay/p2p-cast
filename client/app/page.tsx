@@ -1,7 +1,15 @@
 "use client";
 import Navbar from "@/components/Navbar";
+import { Highlight } from "@/components/ui/hero-highlight";
+import { NavbarButton } from "@/components/ui/resizable-navbar";
 import { Vortex } from "@/components/ui/vortex";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 export default function Home() {
+  const router = useRouter();
+  const handleClick = () => {
+    router.push("/room");
+  };
   return (
     <div className="dark:bg-black bg-[#89CFF0]  min-h-screen">
       <Navbar />
@@ -13,43 +21,32 @@ export default function Home() {
         className="flex items-center flex-col  px-2 md:px-10   w-full min-h-screen"
       >
         <div
-          className=" text-2xl md:text-4xl lg:text-6xl max-w-2xl md:max-w-2xl lg:max-w-6xl leading-relaxed lg:leading-snug text-center mx-auto mt-40  font-bold text-white/90
+          className=" text-3xl md:text-6xl lg:text-8xl max-w-2xl md:max-w-2xl lg:max-w-6xl leading-relaxed lg:leading-snug text-center mx-auto mt-40  font-bold text-white/90
           "
         >
           Why Just Talk When You Can Have
-          <span className="text-blue-600 font-normal ml-2  ">“</span>
-          Charcha
-          <span className="text-blue-600 font-normal mr-2 ">“</span>?
-          <span className="block text-4xl mt-4 text-white/">
-            Video Meetings, Podcasts, and Live Streams — All in One.
+          <span className="mx-2">
+            <Highlight>Charcha</Highlight>
           </span>
-          <div className="block text-2xl text-normal text-wrap max-w-4xl mx-auto text-white/75 mt-8">
+          ?
+          <div className=" text-xl md:text-2xl lg:text-3xl text-normal text-wrap max-w-4xl mx-auto text-white/75 mt-8">
             <span className="text-blue-500 ">Charcha &nbsp;</span>
             is your all-in-one space for meetings, podcasts, and live shows —
             with professional level Audio & Video recording built-in.
           </div>
         </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-4 mt-6">
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition duration-200 rounded-lg text-white shadow-[0px_2px_0px_0px_#FFFFFF40_inset]">
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <NavbarButton variant="primary" onClick={handleClick}>
             Start Charcha
-          </button>
-          <button className="px-4 py-2  text-white ">Watch demo</button>
+          </NavbarButton>
+          <Link
+            href={"#demo"}
+            className="px-4 py-2 rounded-md button text-black text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-200 inline-block text-center bg-transparent shadow-none dark:text-white"
+          >
+            Watch demo
+          </Link>
         </div>
       </Vortex>
-      {/* <SignedOut>
-        <div className="text-center  bg-slate-700/90 m-2 p-2 rounded">
-        <SignInButton></SignInButton>
-        </div>
-        <div className="text-center  bg-slate-700/90 m-2 p-2 rounded">
-        <SignUpButton></SignUpButton>
-        </div>
-        </SignedOut>
-        <SignedIn>
-        <UserButton></UserButton>
-        <SignOutButton></SignOutButton>
-        <CreateRoom />
-        </SignedIn> */}
     </div>
   );
 }

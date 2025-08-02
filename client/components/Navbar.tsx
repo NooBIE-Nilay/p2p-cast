@@ -18,6 +18,7 @@ import {
   SignInButton,
   UserButton,
 } from "@clerk/clerk-react";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const navItems = [
@@ -36,7 +37,7 @@ export default function Navbar() {
   ];
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  const router = useRouter();
   return (
     <div className="relative w-full">
       <RenderNavbar>
@@ -48,7 +49,14 @@ export default function Navbar() {
             {/* //TODO: Fix this, customize Navbar button and modeToggle/UserButton
             for better UI */}
             <SignedIn>
-              <NavbarButton variant="primary">Start Charcha</NavbarButton>
+              <NavbarButton
+                variant="primary"
+                onClick={() => {
+                  router.replace("/room");
+                }}
+              >
+                Start Charcha
+              </NavbarButton>
               <NavbarButton variant="secondary">
                 <ModeToggle />
               </NavbarButton>
@@ -62,9 +70,9 @@ export default function Navbar() {
               </NavbarButton>
 
               <NavbarButton variant="primary">Start Charcha</NavbarButton>
-              <NavbarButton variant="secondary">
+              {/* <NavbarButton variant="secondary">
                 <ModeToggle />
-              </NavbarButton>
+              </NavbarButton> */}
             </SignedOut>
           </div>
         </NavBody>

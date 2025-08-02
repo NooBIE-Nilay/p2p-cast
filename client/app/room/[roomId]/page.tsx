@@ -23,7 +23,7 @@ export default function Room({
     <div>
       <div>
         User Feed:
-        <UserFeedPlayer stream={stream} owner={true} />
+        <UserFeedPlayer stream={stream} owner={true.  />
         <button
           className="bg-slate-700 p-2 m-2 hover:bg-slate-700/80"
           onClick={() => setIsRecording((prev: boolean) => !prev)}
